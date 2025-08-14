@@ -5,7 +5,7 @@ BlockDeleter, Minecraft sunucularında kullanılabilen bir eklentidir. Bu eklent
 ## Gereksinimler
 
 - Minecraft 1.16.5 - 1.21.* (1.16.5, 1.17.x, 1.18.x, 1.19.x, 1.20.x, 1.21.x sürümleri desteklenir)
-- WorldEdit eklentisi
+- WorldEdit eklentisi (FastAsyncWorldEdit Destekler)
 - Java 8 veya üzeri
 
 ## Kurulum
