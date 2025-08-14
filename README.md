@@ -5,7 +5,7 @@ BlockDeleter is a plugin for Minecraft servers that automatically deletes blocks
 ## Requirements
 
 - Minecraft 1.16.5 - 1.21.* (supports 1.16.5, 1.17.x, 1.18.x, 1.19.x, 1.20.x, 1.21.x versions)
-- WorldEdit plugin
+- WorldEdit plugin (Supports FastAsyncWorldEdit)
 - Java 8 or higher
 
 ## Installation
