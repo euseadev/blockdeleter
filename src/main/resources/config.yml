@@ -1,0 +1,30 @@
+# BlockDeleter Configuration
+
+# Time in seconds before placed blocks are deleted
+delete-delay: 300 # ? Default: 5 minutes (300 seconds)
+
+# Messages
+messages:
+  region-defined: "§aRegion defined successfully! Blocks placed in this region will be deleted after %time% seconds."
+  no-selection: "§cYou must make a WorldEdit selection first!"
+  command-usage: "§cUsage: /blockdeleter define"
+  player-only: "§cThis command can only be used by players."
+  region-error: "§cError defining region: %error%"
+
+# Database settings
+database:
+  # Whether to use a database to store regions (true/false)
+  enabled: true
+  # Database type (sqlite/mysql)
+  type: sqlite
+  # SQLite settings (only used if type is sqlite)
+  sqlite:
+    file: "plugins/BlockDeleter/database.db"
+  # MySQL settings (only used if type is mysql)
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "blockdeleter"
+    username: "root"
+    password: "password"
+    table-prefix: "bd_"

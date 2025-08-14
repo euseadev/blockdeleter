@@ -1,0 +1,14 @@
+name: BlockDeleter
+version: 1.0
+main: com.blockdeleter.plugin.BlockDeleter
+api-version: 1.16
+depend: [WorldEdit]
+commands:
+  blockdeleter:
+    description: BlockDeleter plugin commands
+    usage: /blockdeleter <define>
+    permission: blockdeleter.use
+permissions:
+  blockdeleter.use:
+    description: Allows using BlockDeleter commands
+    default: op

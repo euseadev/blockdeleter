@@ -1,0 +1,13 @@
+# BlockDeleter Defined Regions
+# This file stores all defined regions
+
+# Format:
+# regions:
+#   <region-id>:
+#     world: <world-name>
+#     owner: <player-uuid>
+#     min: [x, y, z]
+#     max: [x, y, z]
+#     created: <timestamp>
+
+regions: {}
