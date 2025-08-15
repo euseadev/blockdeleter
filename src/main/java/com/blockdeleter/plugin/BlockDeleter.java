@@ -35,20 +35,15 @@ public class BlockDeleter extends JavaPlugin implements Listener {
     
     @Override
     public void onEnable() {
-        // Save default config if it doesn't exist
         saveDefaultConfig();
         config = getConfig();
         
-        // Load defines.yml
         loadDefinesFile();
         
-        // Get delete delay from config
         deleteDelay = config.getInt("delete-delay", 300);
         
-        // Register events
         getServer().getPluginManager().registerEvents(this, this);
         
-        // Get WorldEdit plugin
         worldEditPlugin = (WorldEditPlugin) getServer().getPluginManager().getPlugin("WorldEdit");
         if (worldEditPlugin == null) {
             getLogger().severe("WorldEdit plugin not found! Disabling BlockDeleter...");
@@ -56,7 +51,6 @@ public class BlockDeleter extends JavaPlugin implements Listener {
             return;
         }
         
-        // Load saved regions
         loadRegions();
         
         getLogger().info("BlockDeleter plugin has been enabled!");
@@ -64,7 +58,6 @@ public class BlockDeleter extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        // Save regions before disabling
         saveRegions();
         getLogger().info("BlockDeleter plugin has been disabled!");
     }
@@ -105,11 +98,9 @@ public class BlockDeleter extends JavaPlugin implements Listener {
                 continue;
             }
             
-            // Create a custom RegionInfo without WorldEdit Region (will be used only for block checking)
             RegionInfo regionInfo = new RegionInfo(worldName, min.get(0), min.get(1), min.get(2), max.get(0), max.get(1), max.get(2));
             playerRegions.put(ownerUUID, regionInfo);
             
-            // Initialize tracked blocks for this player
             if (!trackedBlocks.containsKey(ownerUUID)) {
                 trackedBlocks.put(ownerUUID, new HashSet<>());
             }
@@ -117,10 +108,8 @@ public class BlockDeleter extends JavaPlugin implements Listener {
     }
     
     private void saveRegions() {
-        // Clear existing regions
         definesConfig.set("regions", null);
         
-        // Save current regions
         int regionCounter = 0;
         for (Map.Entry<UUID, RegionInfo> entry : playerRegions.entrySet()) {
             UUID ownerUUID = entry.getKey();
@@ -130,7 +119,6 @@ public class BlockDeleter extends JavaPlugin implements Listener {
             definesConfig.set("regions." + regionId + ".world", regionInfo.worldName);
             definesConfig.set("regions." + regionId + ".owner", ownerUUID.toString());
             
-            // Save min/max coordinates
             List<Integer> min = Arrays.asList(regionInfo.minX, regionInfo.minY, regionInfo.minZ);
             List<Integer> max = Arrays.asList(regionInfo.maxX, regionInfo.maxY, regionInfo.maxZ);
             definesConfig.set("regions." + regionId + ".min", min);
@@ -138,7 +126,6 @@ public class BlockDeleter extends JavaPlugin implements Listener {
             definesConfig.set("regions." + regionId + ".created", System.currentTimeMillis());
         }
         
-        // Save to file
         saveDefinesFile();
     }
 
@@ -170,7 +157,6 @@ public class BlockDeleter extends JavaPlugin implements Listener {
 
     private void defineRegion(Player player) {
         try {
-            // Get player's WorldEdit selection
             Region region = worldEditPlugin.getSession(player).getSelection(BukkitAdapter.adapt(player.getWorld()));
             
             if (region == null) {
@@ -178,11 +164,9 @@ public class BlockDeleter extends JavaPlugin implements Listener {
                 return;
             }
             
-            // Get region bounds
             BlockVector3 min = region.getMinimumPoint();
             BlockVector3 max = region.getMaximumPoint();
             
-            // Store the region information
             UUID playerUUID = player.getUniqueId();
             RegionInfo regionInfo = new RegionInfo(
                 player.getWorld().getName(),
@@ -191,17 +175,14 @@ public class BlockDeleter extends JavaPlugin implements Listener {
             );
             playerRegions.put(playerUUID, regionInfo);
             
-            // Initialize tracked blocks for this player if not already done
             if (!trackedBlocks.containsKey(playerUUID)) {
                 trackedBlocks.put(playerUUID, new HashSet<>());
             } else {
                 trackedBlocks.get(playerUUID).clear();
             }
             
-            // Save the regions to file
             saveRegions();
             
-            // Send success message with time from config
             String message = config.getString("messages.region-defined", "§aRegion defined successfully! Blocks placed in this region will be deleted after %time% seconds.");
             message = message.replace("%time%", String.valueOf(deleteDelay));
             player.sendMessage(message);
@@ -219,7 +200,6 @@ public class BlockDeleter extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
         
-        // Check if player has a defined region
         if (!playerRegions.containsKey(playerUUID)) {
             return;
         }
@@ -227,9 +207,7 @@ public class BlockDeleter extends JavaPlugin implements Listener {
         RegionInfo regionInfo = playerRegions.get(playerUUID);
         Block placedBlock = event.getBlock();
         
-        // Check if block is placed in the defined region
         if (isInRegion(placedBlock, regionInfo)) {
-            // Track this block
             BlockLocation blockLocation = new BlockLocation(
                     placedBlock.getWorld().getName(),
                     placedBlock.getX(),
@@ -239,33 +217,27 @@ public class BlockDeleter extends JavaPlugin implements Listener {
             
             trackedBlocks.get(playerUUID).add(blockLocation);
             
-            // Schedule block deletion after configured time (deleteDelay seconds * 20 ticks)
             Bukkit.getScheduler().runTaskLater(this, () -> {
-                // Check if the block is still being tracked
                 if (trackedBlocks.containsKey(playerUUID) && 
                     trackedBlocks.get(playerUUID).contains(blockLocation)) {
                     
-                    // Get the block and delete it (set to AIR)
                     World world = Bukkit.getWorld(blockLocation.worldName);
                     if (world != null) {
                         Block blockToDelete = world.getBlockAt(blockLocation.x, blockLocation.y, blockLocation.z);
                         blockToDelete.setType(Material.AIR);
                         
-                        // Remove from tracked blocks
                         trackedBlocks.get(playerUUID).remove(blockLocation);
                     }
                 }
-            }, 20L * deleteDelay); // Convert seconds to ticks
+            }, 20L * deleteDelay);
         }
     }
 
     private boolean isInRegion(Block block, RegionInfo regionInfo) {
-        // Check if block is in the same world as the region
         if (!block.getWorld().getName().equals(regionInfo.worldName)) {
             return false;
         }
         
-        // Check if block coordinates are within the region bounds
         int x = block.getX();
         int y = block.getY();
         int z = block.getZ();
@@ -275,14 +247,12 @@ public class BlockDeleter extends JavaPlugin implements Listener {
                z >= regionInfo.minZ && z <= regionInfo.maxZ;
     }
 
-    // Helper class to store region information
     private static class RegionInfo {
         private final String worldName;
         private final int minX, minY, minZ;
         private final int maxX, maxY, maxZ;
-        private Region region; // Optional WorldEdit region
+        private Region region;
 
-        // Constructor with WorldEdit Region
         public RegionInfo(Region region, String worldName) {
             this.region = region;
             this.worldName = worldName;
@@ -298,7 +268,6 @@ public class BlockDeleter extends JavaPlugin implements Listener {
             this.maxZ = max.getBlockZ();
         }
         
-        // Constructor with explicit coordinates
         public RegionInfo(String worldName, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
             this.worldName = worldName;
             this.minX = minX;
@@ -307,11 +276,10 @@ public class BlockDeleter extends JavaPlugin implements Listener {
             this.maxX = maxX;
             this.maxY = maxY;
             this.maxZ = maxZ;
-            this.region = null; // No WorldEdit region
+            this.region = null;
         }
     }
 
-    // Helper class to store block location
     private static class BlockLocation {
         private final String worldName;
         private final int x;
